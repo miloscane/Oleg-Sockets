@@ -3,11 +3,13 @@ var http = require('http');
 
 var server = http.createServer(function(request, response) {
     console.log((new Date()) + ' Received request for ' + request.url);
-    response.writeHead(404);
+    response.writeHead(200);
+    response.write("Mathieu");
     response.end();
 });
-server.listen(3001, function() {
-    console.log((new Date()) + ' Server is listening on port 8080');
+server.listen(39050, function() {
+    console.log((new Date()) + ' Server is listening on port '+39050);
+    console.log("Server version v1.6")
 });
 
 wsServer = new WebSocketServer({
@@ -24,6 +26,8 @@ function originIsAllowed(origin) {
   // put logic here to detect whether the specified origin is allowed.
   return true;
 }
+
+var requestID = 0;
 
 wsServer.on('request', function(request) {
     if (!originIsAllowed(request.origin)) {
@@ -42,9 +46,32 @@ wsServer.on('request', function(request) {
         }
         else if (message.type === 'binary') {
             console.log('Received Binary Message of ' + message.binaryData.length + ' bytes');
-            connection.sendBytes(message.binaryData);
+            var data = message.binaryData;
+            var buf         =   Buffer.from( data , 'hex' );
+            var bufLen = buf.readUInt32LE(0);
+            var checkByte = buf.readInt8(4);
+            var checkByte2 = buf.readInt8(5);
+            console.log("First (INTEGER - 4Byte)");
+            console.log(buf.readUInt32LE(0));
+            console.log("-----------------");
+            console.log("Second (BYTE - 1Byte)");
+            console.log(checkByte);
+            console.log("-----------------");
+            console.log("Third (BYTE - 1Byte)");
+            console.log(checkByte2);
+            console.log("-----------------");
+            console.log("Sending response back to MM:")
+            var replyBuff   =   Buffer.alloc(9);
+            replyBuff.writeUInt32LE( replyBuff.length , 0);
+            requestID++;
+            replyBuff.writeUInt32LE( requestID , 4);
+            replyBuff.writeUInt8( checkByte , 8);
+            connection.sendBytes(replyBuff)
+            console.log("RECEIVED BUFFER LENGTH = "+replyBuff.length+" (INTEGER - 4Byte) | REQUESTID = "+requestID+" (INTEGER - 4Byte) | REQUEST TYPE = " +checkByte+" (BYTE - 1Byte)");
+            
+            
         }else{
-        	console.log("Unknown message type received");
+            console.log("Unknown message type received");
         }
     });
     connection.on('close', function(reasonCode, description) {
