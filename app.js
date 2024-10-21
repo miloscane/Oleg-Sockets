@@ -4,12 +4,12 @@ var http = require('http');
 var server = http.createServer(function(request, response) {
     console.log((new Date()) + ' Received request for ' + request.url);
     response.writeHead(200);
-    response.write("Mathieu"); 
+    response.write("Mathieu");  
     response.end();
 });
 server.listen(39050, function() {
     console.log((new Date()) + ' Server is listening on port '+39050);
-    console.log("Server version v1.6")
+    console.log("Server version v1.8")
 });
 
 wsServer = new WebSocketServer({
